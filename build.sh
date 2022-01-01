@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-emsdk_location="/home/ryan/Documents/emsdk-3.1.0"
+emsdk_location="/opt/emsdk/latest"
 simh_location=$(pwd)/build
 
 # Initial setup: download the codebase, and ensure dependencies for building are installed.
