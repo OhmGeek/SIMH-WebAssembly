@@ -6,7 +6,6 @@
 # Optionally allow the user to specify a custom value for the emscripten SDK.
 emsdk_location=${emsdk_location:="/opt/emsdk/latest"}
 simh_location=$(pwd)/build
-emsdk_location=/home/ryan/Documents/emsdk-3.1.0
 
 # Initial setup: download the codebase, and ensure dependencies for building are installed.
 download_simh_code() {
