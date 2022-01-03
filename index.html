@@ -1,166 +1,124 @@
-<html lang=en-us>
+<!doctype html>
+<html lang="en-us">
 
 <head>
-    <meta charset=utf-8>
-    <meta content="text/html; charset=utf-8" http-equiv=Content-Type>
-    <title>VAX780 Emulator</title>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>VAX-780 Emulator - SIMH</title>
     <style>
-        body {
-            font-family: arial;
-            margin: 0;
-            padding: none
-        }
-
         .emscripten {
             padding-right: 0;
             margin-left: auto;
             margin-right: auto;
-            display: block
+            display: block;
+        }
+
+        textarea.emscripten {
+            font-family: monospace;
+            width: 80%;
         }
 
         div.emscripten {
-            text-align: center
+            text-align: center;
         }
 
         div.emscripten_border {
-            border: 1px solid #000
+            border: 1px solid black;
         }
 
+        /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
         canvas.emscripten {
-            border: 0 none;
-            background-color: #000
-        }
-
-        #emscripten_logo {
-            display: inline-block;
-            margin: 0
+            border: 0px none;
+            background-color: black;
         }
 
         .spinner {
-            height: 30px;
-            width: 30px;
-            margin: 0;
-            margin-top: 20px;
-            margin-left: 20px;
-            display: inline-block;
-            vertical-align: top;
+            height: 50px;
+            width: 50px;
+            margin: 0px auto;
             -webkit-animation: rotation .8s linear infinite;
             -moz-animation: rotation .8s linear infinite;
             -o-animation: rotation .8s linear infinite;
-            animation: rotation .8s linear infinite;
-            border-left: 5px solid #ebebeb;
-            border-right: 5px solid #ebebeb;
-            border-bottom: 5px solid #ebebeb;
-            border-top: 5px solid #787878;
+            animation: rotation 0.8s linear infinite;
+            border-left: 10px solid rgb(0, 150, 240);
+            border-right: 10px solid rgb(0, 150, 240);
+            border-bottom: 10px solid rgb(0, 150, 240);
+            border-top: 10px solid rgb(100, 0, 200);
             border-radius: 100%;
-            background-color: #bdd72e
+            background-color: rgb(200, 100, 250);
         }
 
         @-webkit-keyframes rotation {
             from {
-                -webkit-transform: rotate(0)
+                -webkit-transform: rotate(0deg);
             }
 
             to {
-                -webkit-transform: rotate(360deg)
+                -webkit-transform: rotate(360deg);
             }
         }
 
         @-moz-keyframes rotation {
             from {
-                -moz-transform: rotate(0)
+                -moz-transform: rotate(0deg);
             }
 
             to {
-                -moz-transform: rotate(360deg)
+                -moz-transform: rotate(360deg);
             }
         }
 
         @-o-keyframes rotation {
             from {
-                -o-transform: rotate(0)
+                -o-transform: rotate(0deg);
             }
 
             to {
-                -o-transform: rotate(360deg)
+                -o-transform: rotate(360deg);
             }
         }
 
         @keyframes rotation {
             from {
-                transform: rotate(0)
+                transform: rotate(0deg);
             }
 
             to {
-                transform: rotate(360deg)
+                transform: rotate(360deg);
             }
         }
-
-        #status {
-            display: inline-block;
-            vertical-align: top;
-            margin-top: 30px;
-            margin-left: 20px;
-            font-weight: 700;
-            color: #787878
-        }
-
-        #progress {
-            height: 20px;
-            width: 300px
-        }
-
-        #controls {
-            display: inline-block;
-            float: right;
-            vertical-align: top;
-            margin-top: 30px;
-            margin-right: 20px
-        }
-
-        #output {
-            width: 100%;
-            height: 200px;
-            margin: 0 auto;
-            margin-top: 10px;
-            border-left: 0;
-            border-right: 0px;
-            padding-left: 0;
-            padding-right: 0;
-            display: block;
-            background-color: #000;
-            color: #fff;
-            font-family: 'Lucida Console', Monaco, monospace;
-            outline: 0
-        }
     </style>
-    <script async src=terminal.js></script>
-
 </head>
 
 <body>
+    <hr />
+    <figure style="overflow:visible;" id="spinner">
+        <div class="spinner"></div>
+        <center style="margin-top:0.5em"><strong>emscripten</strong></center>
+    </figure>
+    <div class="emscripten" id="status">Downloading...</div>
+    <div class="emscripten">
+        <progress value="0" max="100" id="progress" hidden=1></progress>
+    </div>
+    <div class="emscripten_border">
+        <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+    </div>
+    <hr />
+    <div class="emscripten">
+        <input type="checkbox" id="resize">Resize canvas
+        <input type="checkbox" id="pointerLock" checked>Lock/hide mouse pointer
+        &nbsp;&nbsp;&nbsp;
+        <input type="button" value="Fullscreen"
+            onclick="Module.requestFullscreen(document.getElementById('pointerLock').checked, 
+                                                                                document.getElementById('resize').checked)">
+    </div>
 
-    <div class=spinner id=spinner></div>
-    <div class=emscripten id=status>Downloading...</div><span id=controls><span><input type=checkbox id=resize>Resize
-            canvas</span><span><input type=checkbox id=pointerLock checked>Lock/hide mouse
-            pointer    </span><span><input type=button
-                onclick='Module.requestFullscreen(document.getElementById("pointerLock").checked,document.getElementById("resize").checked)'
-                value=Fullscreen></span></span>
-    <div class=emscripten><progress hidden id=progress max=100 value=0></progress></div>
-    <div class=emscripten_border><canvas class=emscripten id=canvas oncontextmenu=event.preventDefault()
-            tabindex=-1></canvas></div><textarea id=output rows=8></textarea>
-    <script>
-        var terminal = new Terminal()
-        terminal.setHeight("200px")
-        terminal.setWidth("600px")
-        document.body.appendChild(terminal.html)
-        terminal.input("input) ", function (inputText) {
-            window.prompt = function () { return inputText; }
-        });
-        var statusElement = document.getElementById("status"), progressElement = document.getElementById("progress"), spinnerElement = document.getElementById("spinner"), Module = { preRun: [], postRun: [], print: function () { var e = document.getElementById("output"); return e && (e.value = ""), function (t) { arguments.length > 1 && (t = Array.prototype.slice.call(arguments).join(" ")), terminal.print(t), e && (e.value += t + "\n", e.scrollTop = e.scrollHeight) } }(), canvas: function () { var e = document.getElementById("canvas"); return e.addEventListener("webglcontextlost", (function (e) { alert("WebGL context lost. You will need to reload the page."), e.preventDefault() }), !1), e }(), setStatus: function (e) { if (Module.setStatus.last || (Module.setStatus.last = { time: Date.now(), text: "" }), e !== Module.setStatus.last.text) { var t = e.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/), n = Date.now(); t && n - Module.setStatus.last.time < 30 || (Module.setStatus.last.time = n, Module.setStatus.last.text = e, t ? (e = t[1], progressElement.value = 100 * parseInt(t[2]), progressElement.max = 100 * parseInt(t[4]), progressElement.hidden = !1, spinnerElement.hidden = !1) : (progressElement.value = null, progressElement.max = null, progressElement.hidden = !0, e || (spinnerElement.style.display = "none")), statusElement.innerHTML = e) } }, totalDependencies: 0, monitorRunDependencies: function (e) { this.totalDependencies = Math.max(this.totalDependencies, e), Module.setStatus(e ? "Preparing... (" + (this.totalDependencies - e) + "/" + this.totalDependencies + ")" : "All downloads complete.") } }; Module.setStatus("Downloading..."), window.onerror = function (e) { Module.setStatus("Exception thrown, see JavaScript console"), spinnerElement.style.display = "none", Module.setStatus = function (e) { e && Module.printErr("[post-exception status] " + e) } }
-
-    </script>
-    <script async src=build/BIN/vax780.out.js></script>
+    <hr />
+    <textarea class="emscripten" id="output" rows="8"></textarea>
+    <textarea class="emscripten" id="consoleInput" rows="1"></textarea>
+    <hr>
+    <script src="js/interface.js"></script>
+    <script src="build/BIN/vax780.out.js"></script>
 </body>
 
 </html>
