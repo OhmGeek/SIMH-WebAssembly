@@ -1,11 +1,13 @@
 #!/usr/bin/bash
 
-# This script builds SIMH with web assembly, allowing running of emulators using NodeJS.
-# The goal of this is to wrap the existing makefiles, and add bundling for running the existing emulators with Node.
+# This script is similar to build.sh but instead builds code as a set of JavaScript files that can be run in a web browser.
+# No tests run as part of this process (web tests not yet implemented). 
+# To run the associated code, start the server using "python3 server.py" from the main directory, and go to a web browser.
 
 # Optionally allow the user to specify a custom value for the emscripten SDK.
 emsdk_location=${emsdk_location:="/opt/emsdk/latest"}
 simh_location=$(pwd)/build
+emsdk_location=/home/ryan/Documents/emsdk-3.1.0
 
 # Initial setup: download the codebase, and ensure dependencies for building are installed.
 download_simh_code() {
@@ -51,7 +53,7 @@ build_simh_for_wasm() {
     make clean
 
     make vax780 \
-        GCC='emcc -s MAIN_MODULE -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_SDL_TTF=2 -s USE_ZLIB=1 -s USE_LIBPNG=1 -s NODERAWFS=1 -s PROXY_TO_PTHREAD=1 -s EXIT_RUNTIME=1' \
+        GCC='emcc -s MAIN_MODULE -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_SDL_TTF=2 -s USE_ZLIB=1 -s USE_LIBPNG=1 -s EXIT_RUNTIME=1 -s PROXY_TO_PTHREAD=1' \
         TESTS=0 \
         CFLAGS_G='-s TOTAL_MEMORY=128MB' \
         LDFLAGS='-pthread'  \
@@ -137,7 +139,9 @@ verify_emcc_compiler_is_present_and_working
 verify_make_exists
 
 build_simh_for_wasm
-run_simple_scp_tests
 
-# Note: currently doesn't work due to issues.
+# Note: tests are currently disabled as we can't use node to test this. We need to (eventually) mock Chrome to test the web UI.
+# that's a job for later on.
+
+# run_simple_scp_tests
 # run_simh_tests
